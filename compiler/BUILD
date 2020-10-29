@@ -28,22 +28,32 @@ py_library(
     srcs_version = "PY2AND3",
 )
 
-py_binary(
-    name = "compiler",
+[py_binary(
+    name = "compiler_" + version,
     srcs = ["compiler.py"],
-    python_version = "PY2",
+    python_version = version,
     main = "compiler.py",
     srcs_version = "PY2AND3",
     deps = [":compiler_lib"],
+) for version in ["PY2", "PY3"]]
+
+alias(
+    name = "compiler",
+    actual = ":compiler_PY2",
 )
 
 # Compile the compiler while carefully avoiding a circular dependency
-parfile(
-    name = "compiler.par",
-    src = ":compiler",
-    compiler = ":compiler",
-    default_python_version = "PY2",
+[parfile(
+    name = "compiler_{}.par".format(version),
+    src = ":compiler_" + version,
+    compiler = ":compiler_" + version,
+    default_python_version = version,
     main = "compiler.py",
+) for version in ["PY2", "PY3"]]
+
+alias(
+    name = "compiler.par",
+    actual = ":compiler_PY2.par",
 )
 
 [py_test(
